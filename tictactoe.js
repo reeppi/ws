@@ -50,9 +50,8 @@ module.exports = class tictactoe {
     setMark(data)
     {
         console.log("x:"+data.x+" y:"+data.y +"p:"+data.p);
-        //if (this.turn == data.p)
-       
-        if ( !this.gameover)
+ 
+        if ( !this.gameover && this.turn == data.p)
         {
             if ( this.board[data.y][data.x] != " " ) return;
 
@@ -60,6 +59,10 @@ module.exports = class tictactoe {
                 this.turn = 1;
             else if ( this.turn == 1)
                 this.turn = 0;
+
+            var nextInTurn ="";
+            if ( this.turn == 1)  nextInTurn=this.player2;
+            if ( this.turn == 0) nextInTurn=this.player1;
 
             if ( data.p == 0)
                 this.board[data.y][data.x] = "X";
@@ -83,11 +86,16 @@ module.exports = class tictactoe {
             if ( winner == "0" ) winnerName=this.player2;
             this.users[this.player1].ws.send(JSON.stringify({event:"GAME",event2:"GAMEOVER", data: {username:winnerName,mark:winner}}));
             this.users[this.player2].ws.send(JSON.stringify({event:"GAME",event2:"GAMEOVER", data: {username:winnerName,mark:winner}}));
+            console.log("Winner is "+winner);
         }
-         
-        console.log("Winner is "+winner);
+        
+        if ( winner == "")
+        {
+            this.users[this.player1].ws.send(JSON.stringify({event:"GAME",event2:"TURN", data: {username:nextInTurn}}));
+            this.users[this.player2].ws.send(JSON.stringify({event:"GAME",event2:"TURN", data: {username:nextInTurn}}));
+        }
 
-        } //turn
+        } 
        
     }
 
