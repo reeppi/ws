@@ -9,14 +9,16 @@ const schemas = {
     }),
   }
   
-const ROWS=10;
-const COLS=10;
+const ROWS=14;
+const COLS=14;
 const winCount=4;
+
 
 module.exports = class tictactoe {
 
     constructor(users_,player1_,player2_)
     {
+
         this.board=Array(ROWS).fill(0).map(x => Array(COLS).fill(' '));
         console.table(this.board);
         this.users=users_;

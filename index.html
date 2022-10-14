@@ -4,9 +4,7 @@
       let HOST = location.origin.replace(/^http/, 'ws')
       console.log(location.origin);
       console.log(HOST);
-
       let ws;
-      
       function startConnection()
       {
           ws=new WebSocket(HOST);
@@ -26,35 +24,11 @@
           };
       }
       startConnection();
-
-      function register()
-      {
-        let username=document.getElementById('message').value;
-        console.log(username);
-        ws.send(JSON.stringify({event:"LOGIN",payload :{ username }}))
-      }
-
-      function SendMessage()
-      {
-        let message=document.getElementById('msgInput').value;
-        let receiver=document.getElementById('recInput').value;
-        ws.send(JSON.stringify({to:receiver,msg:message}));
-      }
     </script>
+    <title>MINIPELIT</title>
   </head>
   <body>
 	AIKA : <br>
-
-  <button onClick='ws.close(); startConnection();'>Start Connection</button>
-  <button onClick='ws.close()'>Closeconnection</button>
-
   <p id="server-time"></p>
-    <p id="username"></p>
-    <input type="text" id="message">
-    <button onClick='register()'>Register</button><br><br>
-    <input type="text" value="viesti" id="msgInput">
-    <input type="text" value=""  id="recInput">
-    <button onClick='sendMessage()'>SendMessage</button><br>
-
   </body>
 </html>
