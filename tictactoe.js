@@ -30,7 +30,7 @@ module.exports = class tictactoe {
         console.log("Waiting for "+this.player2);
     }
  
-    event(payload)
+    event(payload,ws)
     {
         try {
             if ( !("event" in payload ) )

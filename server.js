@@ -6,24 +6,48 @@ const { object } = require('yup');
 const router = express.Router();
 const PORT = process.env.PORT || 3001;
 const INDEX = '/index.html';
-router.get('/', (req, res) => res.sendFile(INDEX, { root: __dirname }) );
+const cors = require('cors');
 const app = express();
 app.use("/",router);
+app.use(cors()); 
+router.get('/foods',cors(), (req,res) => getFoods(res,req,false) )
+router.get('/', cors(), (req, res) => res.sendFile(INDEX, { root: __dirname }) );
+
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 const wss = new Server({ server });
 const yup  = require("yup");
 const { users,getUsername } = require('./service');
 const tictactoe = require("./tictactoe");
+const foodfight = require("./foodfight");
+const fetch  = require("node-fetch");
 
 const MAXLEN=20;
 const MINLEN=3;
 
 //users["testi"]={};
-//users.testi.game=new tictactoe(users,"111","222");
+//users.testi.game=new foodfight(users,"111","222");
+
+async function getFoods(res,req) {
+  try {
+    if ( !req.query.q )
+    {
+        res.json([]);
+        return;
+    }
+    const response = await fetch("https://fineli.fi/fineli/api/v1/foods?q="+req.query.q);
+    const data = await response.json();
+    res.json(data);
+  } catch (e)
+  {
+    console.log(e.message);
+    res.json([]);
+  }
+}
+
 
 const schemas = {
   "CHAT": yup.object().shape( { msg: yup.string().max(100) }),
-  "LOGIN": yup.object().shape( { username: yup.string().required().min(MINLEN).max(MAXLEN) }),
+  "LOGIN": yup.object().shape( { username: yup.string().required().min(MINLEN,"Nimimerkin pitää olla vähintään 3 merkkiä.").max(MAXLEN,"Nimimerkki ei saa olla yli 20 merkkiä.") }),
   "LOGOUT": yup.object().shape( { username: yup.string().required().min(MINLEN).max(MAXLEN) }),
   "INVITE": yup.object().shape( { 
     username: yup.string().required().min(MINLEN).max(MAXLEN),
@@ -35,7 +59,7 @@ const schemas = {
 
   "CANCELINVITE": yup.object().shape( { username: yup.string().required().min(MINLEN).max(MAXLEN)}),
   "REJECTINVITE": yup.object().shape( { username: yup.string().required().min(MINLEN).max(MAXLEN)}),
-  "GAME": yup.object().shape( { id: yup.string().required(), event:yup.string().required(), data: yup.object() })
+  "GAME": yup.object().shape( { id: yup.string().required("Peliä ei ole vielä käynnissä."), event:yup.string().required(), data: yup.object() })
 }
 
 var total=0;
@@ -94,14 +118,15 @@ wss.on('connection', (ws) => {
         case "GAME": 
           console.log("game event "+data.payload.id);
             if ( !users[data.payload.id].game ) 
-              throw new Error("Käyttäjällä "+ data.payloud.id +" ei ole peliä");
-            users[data.payload.id].game.event(data.payload);
-        break;
+              throw new Error("Käyttäjällä "+ data.payload.id +" ei ole peliä");
+            users[data.payload.id].game.event(data.payload,ws); 
+            // Tähän voisi harkita jotain parempaa tapaa. gameId on nyt vaan käyttäjännimi
+        break; 
       }    
     } catch (e)
     {
       var msg=e.message;
-         if (e.message=="id is a required field") msg ="Peli pitää luoda ensiksi.";
+      //   if (e.message=="id is a required field") msg ="Peli ei ole vielä käynnissä.  ";
 
      ws.send(JSON.stringify({event:"MSG", payload: { error:true, msg }}));
      console.log(e.message);
@@ -116,9 +141,11 @@ function sendInvite(ws,data)
     if ( username == "" ) return;
   if ( !users[data.username] ) throw new Error("Käyttäjää "+data.username+" ei ole."); 
   
+  //UUSIPELI
   switch ( data.game )
   {
     case "tictactoe": users[username].game = new tictactoe(users,username,data.username); break;
+    case "foodfight": users[username].game = new foodfight(username,data.username); break;
   }
 
   console.log(username+" created game");
