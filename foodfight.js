@@ -132,6 +132,12 @@ module.exports = class foodfight {
         var error=false;
         var p1time=p1[a1].delay;
         var p2time=p2[a2].delay;
+
+        for (let i=0;i<p1.length;i++)
+            p1[i].healthF=p1[i].health;
+        for (let i=0;i<p2.length;i++)
+            p2[i].healthF=p2[i].health;
+
         while (true) 
         {
             let damage=0;
