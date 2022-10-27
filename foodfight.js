@@ -129,15 +129,21 @@ module.exports = class foodfight {
         var tmp=0;
         var a1=0;
         var a2=0;
+        var error=false;
         var p1time=p1[a1].delay;
         var p2time=p2[a2].delay;
-        while (true && tmp < 500) //tmp estää ettei jäädä varmasti ikuiseen silmukkaan joka ei hyvä.
+        while (true) 
         {
             let damage=0;
             let health=0;
             let showTime=0;
             let showDamage=0;
             tmp++;
+            if (tmp >= 600) //tmp estää ettei jäädä varmasti ikuiseen silmukkaan joka ei hyvä.
+            {
+                error=true;
+                break;
+            }
 
             // Arvotaan kumman vuoro jos samaan aikaan lyödään... Pientä satunnaisuuttakin tässä :)
             let a=false;
@@ -217,12 +223,20 @@ module.exports = class foodfight {
             } 
         }
         console.log("Rähinä alkoi!!!!");  
-        /*
-        for (let i=0;i<events.length;i++)
-            console.log( events[i].time+ " : "+events[i].msg);
-        */
-        users[this.player1].ws.send(JSON.stringify({event:"GAME",event2:"RESULT", data: {log:events1,winner,score:a2+"-"+a1}} ));
-        users[this.player2].ws.send(JSON.stringify({event:"GAME",event2:"RESULT", data: {log:events2,winner,score:a1+"-"+a2}} ));
+        /*for (let i=0;i<events.length;i++)console.log( events[i].time+ " : "+events[i].msg);*/
+        
+        if ( !error )
+        {
+            users[this.player1].ws.send(JSON.stringify({event:"GAME",event2:"RESULT", data: {log:events1,winner,score:a2+"-"+a1, army:p1, oppArmy:p2}} ));
+            users[this.player2].ws.send(JSON.stringify({event:"GAME",event2:"RESULT", data: {log:events2,winner,score:a1+"-"+a2, army:p2, oppArmy:p1}} ));
+        } else 
+        {
+            var errorEvents=[];
+            errorEvents.push({time:0,event:"death",msg:"Rähisijät väsyivät ja luovuttivat. Luultavasti hiilarin eli hyökkäyksen puutetta."});
+            users[this.player1].ws.send(JSON.stringify({event:"GAME",event2:"RESULT", data: {log:errorEvents,winner,score:a2+"-"+a1, army:p1, oppArmy:p2}} ));
+            users[this.player2].ws.send(JSON.stringify({event:"GAME",event2:"RESULT", data: {log:errorEvents,winner,score:a1+"-"+a2, army:p2, oppArmy:p1}} ));
+        }
+
         this.player1Army = [];
         this.player2Army = []; 
     }
